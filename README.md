@@ -12,3 +12,5 @@ Dự án PHP cơ bản mô phỏng cấu trúc MVC tối giản phục vụ họ
 - `views/`: giao diện tương ứng mỗi action (trang chủ, giỏ hàng, thanh toán...).
 - `public/`: tài nguyên tĩnh (css/js/images).
 - `.htaccess`: Dùng Rewrite URL Chuyển từ dạng "index.php?act=home" thành "/home"
+
+....
