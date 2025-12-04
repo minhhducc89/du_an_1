@@ -1,45 +1,49 @@
 <?php
 
-// Controller xử lý các chức năng liên quan đến xác thực (đăng nhập, đăng xuất)
+function createPasswordHash($password)
+{
+    return password_hash($password, PASSWORD_BCRYPT);
+}
+
+
 class AuthController
 {
-    
     // Hiển thị form đăng nhập
     public function login()
     {
-        // Nếu đã đăng nhập rồi thì chuyển về trang home
         if (isLoggedIn()) {
+            $user = getCurrentUser();
+            // Redirect theo role
+            if ($user && $user->isAdmin()) {
+                header('Location: ' . BASE_URL . '?act=dashboard');
+            } elseif ($user && $user->isGuide()) {
+                header('Location: ' . BASE_URL . '?act=guide-schedule');
+            } else {
             header('Location: ' . BASE_URL . 'home');
+            }
             exit;   
         }
 
-        // Lấy URL redirect nếu có (để quay lại trang đang xem sau khi đăng nhập)
-        // Mặc định redirect về trang home
         $redirect = $_GET['redirect'] ?? BASE_URL . 'home';
 
-        // Hiển thị view login
         view('auth.login', [
-            'title' => 'Đăng nhập',
+            'title'    => 'Đăng nhập',
             'redirect' => $redirect,
         ]);
     }
 
-    // Xử lý đăng nhập (nhận dữ liệu từ form POST)
+    // Xử lý đăng nhập
     public function checkLogin()
     {
-        // Chỉ xử lý khi là POST request
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: ' . BASE_URL . 'login');
             exit;
         }
 
-        // Lấy dữ liệu từ form
-        $email = $_POST['email'] ?? '';
+        $email    = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
-        // Mặc định redirect về trang home sau khi đăng nhập
         $redirect = $_POST['redirect'] ?? BASE_URL . 'home';
 
-        // Validate dữ liệu đầu vào
         $errors = [];
 
         if (empty($email)) {
@@ -50,44 +54,76 @@ class AuthController
             $errors[] = 'Vui lòng nhập mật khẩu';
         }
 
-        // Nếu có lỗi validation thì quay lại form login
         if (!empty($errors)) {
             view('auth.login', [
-                'title' => 'Đăng nhập',
-                'errors' => $errors,
-                'email' => $email,
+                'title'    => 'Đăng nhập',
+                'errors'   => $errors,
+                'email'    => $email,
                 'redirect' => $redirect,
             ]);
             return;
         }
 
-        // Tạo user mẫu để đăng nhập (không kiểm tra database)
-        // Chỉ để demo giao diện
+        // Kết nối DB
+        $pdo = getDB();
+        if ($pdo === null) {
+            $errors[] = 'Không thể kết nối cơ sở dữ liệu.';
+            view('auth.login', [
+                'title'    => 'Đăng nhập',
+                'errors'   => $errors,
+                'email'    => $email,
+                'redirect' => $redirect,
+            ]);
+            return;
+        }
+
+        // Lấy user theo email
+        $stmt = $pdo->prepare(
+            'SELECT * FROM users WHERE email = :email AND status = 1 LIMIT 1'
+        );
+        $stmt->execute([':email' => $email]);
+        $userRow = $stmt->fetch();
+
+        // Kiểm tra user + mật khẩu
+        if (!$userRow || !password_verify($password, $userRow['password'])) {
+            $errors[] = 'Email hoặc mật khẩu không chính xác.';
+            view('auth.login', [
+                'title'    => 'Đăng nhập',
+                'errors'   => $errors,
+                'email'    => $email,
+                'redirect' => $redirect,
+            ]);
+            return;
+        }
+
+        // Tạo object User
         $user = new User([
-            'id' => 1,
-            'name' => 'Người dùng mẫu',
-            'email' => $email,
-            'role' => 'huong_dan_vien',
-            'status' => 1,
+            'id'     => $userRow['id'],
+            'name'   => $userRow['name'],
+            'email'  => $userRow['email'],
+            'role'   => $userRow['role'], // admin / guide
+            'status' => $userRow['status'],
         ]);
 
-        // Đăng nhập thành công: lưu vào session
+        // Lưu session
         loginUser($user);
 
-        // Chuyển hướng về trang được yêu cầu hoặc trang chủ
-        header('Location: ' . $redirect);
+        // Redirect theo role
+        if ($user->isAdmin()) {
+            header('Location: ' . BASE_URL . '?act=dashboard');
+        } elseif ($user->isGuide()) {
+            header('Location: ' . BASE_URL . '?act=guide-schedule');
+        } else {
+            header('Location: ' . BASE_URL . 'home');
+        }
         exit;
     }
 
-    // Xử lý đăng xuất
+    // Đăng xuất
     public function logout()
     {
-        // Xóa session và đăng xuất
         logoutUser();
-
-        // Chuyển hướng về trang welcome
         header('Location: ' . BASE_URL . 'welcome');
         exit;
     }
 }
-

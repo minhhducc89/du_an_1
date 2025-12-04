@@ -23,15 +23,15 @@ ob_start();
         </div>
       </div>
       <div class="card-body">
-        <?php if (isLoggedIn()): ?>
+        <?php if (isLoggedIn() && isset($user) && $user): ?>
           <div class="alert alert-success" role="alert">
             <h4 class="alert-heading">
               <i class="bi bi-check-circle-fill me-2"></i>
               Đăng nhập thành công!
             </h4>
             <p class="mb-0">
-              Xin chào, <strong><?= htmlspecialchars($user->name) ?></strong>! 
-              Bạn đã đăng nhập với quyền <strong><?= $user->isAdmin() ? 'Admin' : 'Hướng dẫn viên' ?></strong>.
+              Xin chào, <strong><?= htmlspecialchars($user->name ?? '') ?></strong>! 
+              Bạn đã đăng nhập với quyền <strong><?= ($user->isAdmin() ?? false) ? 'Admin' : 'Hướng dẫn viên' ?></strong>.
             </p>
           </div>
 
@@ -48,7 +48,7 @@ ob_start();
                     Email
                   </h5>
                 </div>
-                <p class="mb-1"><?= htmlspecialchars($user->email) ?></p>
+                <p class="mb-1"><?= htmlspecialchars($user->email ?? '') ?></p>
               </div>
               <div class="list-group-item">
                 <div class="d-flex w-100 justify-content-between">
@@ -58,7 +58,7 @@ ob_start();
                   </h5>
                 </div>
                 <p class="mb-1">
-                  <?= $user->isAdmin() ? 'Quản trị viên' : 'Hướng dẫn viên' ?>
+                  <?= ($user->isAdmin() ?? false) ? 'Quản trị viên' : 'Hướng dẫn viên' ?>
                 </p>
               </div>
             </div>
@@ -91,7 +91,7 @@ view('layouts.AdminLayout', [
     'pageTitle' => 'Trang chủ',
     'content' => $content,
     'breadcrumb' => [
-        ['label' => 'Trang chủ', 'url' => BASE_URL . 'home', 'active' => true],
+        ['label' => 'Trang chủ', 'url' => BASE_URL . '?act=home', 'active' => true],
     ],
 ]);
 ?>
