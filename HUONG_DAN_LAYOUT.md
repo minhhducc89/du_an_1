@@ -78,4 +78,3 @@ view('layout', [
 - Nội dung giữa `ob_start()` và `ob_get_clean()` sẽ KHÔNG hiển thị trực tiếp
 - Chỉ khi gọi `view('layout', ['content' => $content])` thì nội dung mới được hiển thị
 
-.

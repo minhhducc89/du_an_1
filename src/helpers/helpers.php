@@ -134,7 +134,12 @@ function requireAdmin()
     requireLogin();
     
     if (!isAdmin()) {
-        header('Location: ' . BASE_URL);
+        // Nếu là guide, redirect về trang lịch trình
+        if (isGuide()) {
+            header('Location: ' . BASE_URL . '?act=guide-schedule');
+        } else {
+            header('Location: ' . BASE_URL);
+        }
         exit;
     }
 }
@@ -146,6 +151,40 @@ function requireGuideOrAdmin()
     
     if (!isGuide() && !isAdmin()) {
         header('Location: ' . BASE_URL);
+        exit;
+    }
+}
+
+// Middleware: Chặn guide truy cập vào trang admin
+// Sử dụng trong các controller admin để đảm bảo chỉ admin mới truy cập được
+function requireAdminOnly()
+{
+    requireLogin();
+    
+    if (!isAdmin()) {
+        // Nếu là guide, redirect về trang lịch trình
+        if (isGuide()) {
+            header('Location: ' . BASE_URL . '?act=guide-schedule');
+        } else {
+            header('Location: ' . BASE_URL);
+        }
+        exit;
+    }
+}
+
+// Middleware: Chặn admin truy cập vào trang guide (nếu cần)
+// Hiện tại cho phép admin xem được, nhưng có thể thêm logic riêng nếu cần
+function requireGuideOnly()
+{
+    requireLogin();
+    
+    if (!isGuide()) {
+        // Nếu là admin, redirect về dashboard
+        if (isAdmin()) {
+            header('Location: ' . BASE_URL . '?act=dashboard');
+        } else {
+            header('Location: ' . BASE_URL);
+        }
         exit;
     }
 }
