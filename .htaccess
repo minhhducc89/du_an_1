@@ -2,7 +2,7 @@
 RewriteEngine On
 
 # Cập nhật nếu dự án chạy ở path khác
-RewriteBase /website_quan_ly_tour/
+RewriteBase /du_an_1/
 
 # Cho phép truy cập trực tiếp vào file và thư mục thật
 RewriteCond %{REQUEST_FILENAME} -f [OR]
