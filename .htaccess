@@ -2,13 +2,31 @@
 RewriteEngine On
 
 # Cập nhật nếu dự án chạy ở path khác
-RewriteBase /website_quan_ly_tour/
+RewriteBase /du_an_1/
 
-# Route trang chủ
+# Cho phép truy cập trực tiếp vào file và thư mục thật
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route trang chủ (/) -> index.php
 RewriteRule ^$ index.php [L,QSA]
 
-# Các đường dẫn khác (không phải file/thư mục thật) chuyển về index.php?act=...
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# Route /welcome -> index.php?act=welcome
+RewriteRule ^welcome/?$ index.php?act=welcome [L,QSA]
+
+# Route /home -> index.php?act=home
+RewriteRule ^home/?$ index.php?act=home [L,QSA]
+
+# Route /login -> index.php?act=login
+RewriteRule ^login/?$ index.php?act=login [L,QSA]
+
+# Route /logout -> index.php?act=logout
+RewriteRule ^logout/?$ index.php?act=logout [L,QSA]
+
+# Các đường dẫn khác chuyển về index.php?act=...
+# Ví dụ: /dashboard -> index.php?act=dashboard
+# Ví dụ: /tours -> index.php?act=tours
+# Ví dụ: /tour-edit&id=1 -> index.php?act=tour-edit&id=1
 RewriteRule ^(.+)$ index.php?act=$1 [L,QSA]
 
