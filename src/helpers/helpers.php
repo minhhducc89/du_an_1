@@ -46,6 +46,44 @@ function asset(string $path): string
     return rtrim(BASE_URL, '/') . '/public/' . $trimmed;
 }
 
+// Tạo URL đẹp từ route name và query parameters
+// @param string $route Route name (ví dụ: 'dashboard', 'tour-edit')
+// @param array $params Query parameters (ví dụ: ['id' => 1, 'status' => 2])
+// @return string URL đẹp (ví dụ: '/dashboard', '/tour-edit?id=1&status=2')
+function url(string $route, array $params = []): string
+{
+    // Loại bỏ '?act=' nếu có trong route
+    $route = str_replace('?act=', '', $route);
+    
+    // Xử lý các route đặc biệt
+    $routeMap = [
+        '/' => '',
+        'welcome' => 'welcome',
+        'home' => 'home',
+        'login' => 'login',
+        'logout' => 'logout',
+    ];
+    
+    // Nếu route có trong map, dùng giá trị từ map
+    if (isset($routeMap[$route])) {
+        $path = $routeMap[$route];
+    } else {
+        // Giữ nguyên route
+        $path = $route;
+    }
+    
+    // Tạo URL với BASE_URL
+    $url = rtrim(BASE_URL, '/') . '/' . ltrim($path, '/');
+    
+    // Thêm query parameters nếu có
+    if (!empty($params)) {
+        $queryString = http_build_query($params);
+        $url .= '?' . $queryString;
+    }
+    
+    return $url;
+}
+
 // Khởi động session nếu chưa khởi động(session là một cơ chế để lưu trữ dữ liệu trên server)
 function startSession()
 {
@@ -123,7 +161,7 @@ function requireLogin($redirectUrl = null)
 {
     if (!isLoggedIn()) {
         $redirect = $redirectUrl ?: $_SERVER['REQUEST_URI'];
-        header('Location: ' . BASE_URL . '?act=login&redirect=' . urlencode($redirect));
+        header('Location: ' . url('login', ['redirect' => $redirect]));
         exit;
     }
 }
@@ -136,9 +174,9 @@ function requireAdmin()
     if (!isAdmin()) {
         // Nếu là guide, redirect về trang lịch trình
         if (isGuide()) {
-            header('Location: ' . BASE_URL . '?act=guide-schedule');
+            header('Location: ' . url('guide-schedule'));
         } else {
-            header('Location: ' . BASE_URL);
+            header('Location: ' . url('/'));
         }
         exit;
     }
@@ -150,7 +188,7 @@ function requireGuideOrAdmin()
     requireLogin();
     
     if (!isGuide() && !isAdmin()) {
-        header('Location: ' . BASE_URL);
+        header('Location: ' . url('/'));
         exit;
     }
 }
@@ -164,9 +202,9 @@ function requireAdminOnly()
     if (!isAdmin()) {
         // Nếu là guide, redirect về trang lịch trình
         if (isGuide()) {
-            header('Location: ' . BASE_URL . '?act=guide-schedule');
+            header('Location: ' . url('guide-schedule'));
         } else {
-            header('Location: ' . BASE_URL);
+            header('Location: ' . url('/'));
         }
         exit;
     }
@@ -181,9 +219,9 @@ function requireGuideOnly()
     if (!isGuide()) {
         // Nếu là admin, redirect về dashboard
         if (isAdmin()) {
-            header('Location: ' . BASE_URL . '?act=dashboard');
+            header('Location: ' . url('dashboard'));
         } else {
-            header('Location: ' . BASE_URL);
+            header('Location: ' . url('/'));
         }
         exit;
     }
