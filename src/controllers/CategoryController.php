@@ -1,9 +1,15 @@
 <?php
+<<<<<<< HEAD
 
 // Controller quản lý danh mục tour (categories) - chỉ cho admin
 class CategoryController
 {
     // Danh sách danh mục
+=======
+// controller qly danh muc(admin)
+
+class CategoryController{
+>>>>>>> 59c3a9ba6d90bffe1377127c99c7f9c535a23317
     public function index(): void
     {
         requireAdmin();
@@ -24,12 +30,19 @@ class CategoryController
             ],
         ]);
     }
+<<<<<<< HEAD
 
     // Form thêm mới
     public function create(): void
     {
         requireAdmin();
 
+=======
+    //form them
+
+    public function create(): variant_mod{
+        requireAdmin();
+>>>>>>> 59c3a9ba6d90bffe1377127c99c7f9c535a23317
         $errors = [];
         $old = ['name' => '', 'description' => '', 'status' => 1];
 
@@ -48,8 +61,11 @@ class CategoryController
             ],
         ]);
     }
+<<<<<<< HEAD
 
     // Lưu thêm mới
+=======
+>>>>>>> 59c3a9ba6d90bffe1377127c99c7f9c535a23317
     public function store(): void
     {
         requireAdmin();
@@ -142,6 +158,7 @@ class CategoryController
             ],
         ]);
     }
+<<<<<<< HEAD
 
     // Cập nhật
     public function update(): void
@@ -224,3 +241,7 @@ class CategoryController
 }
 
 
+=======
+    public function update(): void
+}
+>>>>>>> 59c3a9ba6d90bffe1377127c99c7f9c535a23317
