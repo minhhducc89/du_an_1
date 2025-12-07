@@ -1,23 +1,22 @@
 <?php
 
-class Customer{
+// Model Customer thao tác với bảng customers
+class Customer
+{
     public $id;
     public $name;
     public $phone;
     public $email;
-
     public $address;
-
     public $company;
-
     public $tax_code;
-
     public $notes;
     public $status;
     public $created_at;
     public $updated_at;
 
-    public function __construct($id, $name, $phone, $email, $address, $company, $tax_code, $notes, $status, $created_at, $updated_at){
+    public function __construct(array $data = [])
+    {
         $this->id       = $data['id'] ?? null;
         $this->name     = $data['name'] ?? '';
         $this->phone    = $data['phone'] ?? '';
@@ -31,26 +30,32 @@ class Customer{
         $this->updated_at = $data['updated_at'] ?? null;
     }
 
-    public static function all(bool $activeOnly = false): array{
-         $pdo = getDB();
+    public static function all(bool $activeOnly = false): array
+    {
+        $pdo = getDB();
         if ($pdo === null) {
             return [];
         }
+
         $sql = 'SELECT * FROM customers';
         if ($activeOnly) {
             $sql .= ' WHERE status = 1';
         }
         $sql .= ' ORDER BY created_at DESC';
+
         $stmt = $pdo->query($sql);
         $rows = $stmt->fetchAll();
-        return array_map(fn($row) => new Customer($row), $rows);
-    } 
 
-    public static function find(int $id) : ?Customer{
+        return array_map(fn($row) => new Customer($row), $rows);
+    }
+
+    public static function find(int $id): ?Customer
+    {
         $pdo = getDB();
         if ($pdo === null) {
             return null;
         }
+
         $stmt = $pdo->prepare('SELECT * FROM customers WHERE id = :id LIMIT 1');
         $stmt->execute([':id' => $id]);
         $row = $stmt->fetch();
@@ -75,7 +80,8 @@ class Customer{
 
         $row = $stmt->fetch();
         return (int)($row['count'] ?? 0) > 0;
-    }  
+    }
+
     public static function existsByEmail(string $email, ?int $excludeId = null): bool
     {
         if (empty($email)) {
@@ -98,7 +104,7 @@ class Customer{
         $row = $stmt->fetch();
         return (int)($row['count'] ?? 0) > 0;
     }
-    
+
     public function save(): bool
     {
         $pdo = getDB();
@@ -126,7 +132,9 @@ class Customer{
                 $this->id = (int)$pdo->lastInsertId();
             }
             return $ok;
-        }$stmt = $pdo->prepare(
+        }
+
+        $stmt = $pdo->prepare(
             'UPDATE customers
              SET name = :name,
                  phone = :phone,
@@ -150,6 +158,7 @@ class Customer{
             ':id'       => $this->id,
         ]);
     }
+
     public function softDelete(): bool
     {
         if ($this->id === null) {
@@ -171,16 +180,22 @@ class Customer{
             return false;
         }
 
-       $stmt = $pdo->prepare('SELECT COUNT(*) as count FROM bookings WHERE service_detail LIKE :pattern');
+        // Kiểm tra xem customer có đang được sử dụng trong booking không
+        // Tìm booking có service_detail chứa phone của customer này
+        $stmt = $pdo->prepare('SELECT COUNT(*) as count FROM bookings WHERE service_detail LIKE :pattern');
         $pattern = '%"phone":"' . str_replace('"', '\\"', $this->phone) . '"%';
         $stmt->execute([':pattern' => $pattern]);
         $row = $stmt->fetch();
         $bookingCount = (int)($row['count'] ?? 0);
+
         if ($bookingCount > 0) {
+            // Có booking đang sử dụng, chỉ soft delete
             return $this->softDelete();
         }
+
+        // Không có booking, hard delete
         $stmt = $pdo->prepare('DELETE FROM customers WHERE id = :id');
         return $stmt->execute([':id' => $this->id]);
     }
 }
-?>
+
