@@ -6,9 +6,16 @@ class HomeController
     // Nếu đã đăng nhập thì redirect về trang home
     public function welcome(): void
     {
-        // Nếu đã đăng nhập thì redirect về trang home
+        // Nếu đã đăng nhập thì redirect theo role
         if (isLoggedIn()) {
-            header('Location: ' . BASE_URL . 'home');
+            $user = getCurrentUser();
+            if ($user && $user->isAdmin()) {
+                header('Location: ' . url('dashboard'));
+            } elseif ($user && $user->isGuide()) {
+                header('Location: ' . url('guide-schedule'));
+            } else {
+                header('Location: ' . url('home'));
+            }
             exit;
         }
 
@@ -20,16 +27,26 @@ class HomeController
 
     // Trang home - chỉ dành cho người đã đăng nhập
     // Nếu chưa đăng nhập thì redirect về trang welcome
+    // Nếu đã đăng nhập thì redirect theo role
     public function home(): void
     {
         // Yêu cầu phải đăng nhập, nếu chưa thì redirect về welcome
         if (!isLoggedIn()) {
-            header('Location: ' . BASE_URL . 'welcome');
+            header('Location: ' . url('welcome'));
             exit;
         }
 
         // Lấy thông tin user hiện tại (đã đảm bảo đăng nhập ở trên)
         $currentUser = getCurrentUser();
+
+        // Redirect theo role
+        if ($currentUser && $currentUser->isAdmin()) {
+            header('Location: ' . url('dashboard'));
+            exit;
+        } elseif ($currentUser && $currentUser->isGuide()) {
+            header('Location: ' . url('guide-schedule'));
+            exit;
+        }
 
         // Hiển thị view home với dữ liệu title và user
         view('home', [
@@ -48,3 +65,4 @@ class HomeController
         ]);
     }
 }
+
