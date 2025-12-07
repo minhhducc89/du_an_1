@@ -96,6 +96,17 @@
           <dd class="col-sm-8">
             <?= nl2br(htmlspecialchars($booking['notes'] ?? '')) ?: '<span class="text-muted">Không có</span>' ?>
           </dd>
+
+          <dt class="col-sm-4">Hợp đồng</dt>
+          <dd class="col-sm-8">
+            <?php if (!empty($booking['contract'])): ?>
+              <div class="alert alert-light border mb-0">
+                <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;"><?= htmlspecialchars($booking['contract']) ?></pre>
+              </div>
+            <?php else: ?>
+              <span class="text-muted">Chưa có thông tin hợp đồng</span>
+            <?php endif; ?>
+          </dd>
         </dl>
       </div>
     </div>

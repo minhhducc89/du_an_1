@@ -259,6 +259,22 @@ $bookingId = $isEdit ? (int)$_GET['id'] : 0;
             ><?= htmlspecialchars($old['notes'] ?? '') ?></textarea>
           </div>
 
+          <h5 class="mt-4 mb-2">Hợp đồng</h5>
+          
+          <div class="mb-3">
+            <label for="contract" class="form-label">Nội dung hợp đồng</label>
+            <textarea
+              class="form-control"
+              id="contract"
+              name="contract"
+              rows="6"
+              placeholder="Nhập nội dung hợp đồng, số hợp đồng, điều khoản thanh toán, v.v."
+            ><?= htmlspecialchars($old['contract'] ?? '') ?></textarea>
+            <small class="text-muted">
+              Ghi chú về hợp đồng: số hợp đồng, điều khoản thanh toán, các thỏa thuận đặc biệt, v.v.
+            </small>
+          </div>
+
           <button type="submit" class="btn btn-primary">
             <?= $isEdit ? 'Cập nhật booking' : 'Lưu booking' ?>
           </button>
