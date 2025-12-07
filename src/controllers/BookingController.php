@@ -1130,6 +1130,60 @@ class BookingController
         echo $content;
         exit;
     }
+
+    // Xuất hợp đồng ra PDF
+    public function exportContract(): void
+    {
+        requireAdmin();
+
+        $bookingId = (int)($_GET['id'] ?? 0);
+
+        $pdo = getDB();
+        if ($pdo === null) {
+            throw new RuntimeException('Không thể kết nối cơ sở dữ liệu');
+        }
+
+        // Lấy thông tin booking
+        $sql = "
+            SELECT b.*, t.name AS tour_name, ts.name AS status_name
+            FROM bookings b
+            LEFT JOIN tours t ON t.id = b.tour_id
+            LEFT JOIN tour_statuses ts ON ts.id = b.status
+            WHERE b.id = :id
+            LIMIT 1
+        ";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':id' => $bookingId]);
+        $booking = $stmt->fetch();
+
+        if (!$booking) {
+            header('Location: ' . BASE_URL . '?act=bookings');
+            exit;
+        }
+
+        if (empty($booking['contract'])) {
+            header('Location: ' . BASE_URL . '?act=booking-show&id=' . $bookingId);
+            exit;
+        }
+
+        // Lấy thông tin service_detail
+        $service = [];
+        if (!empty($booking['service_detail'])) {
+            $decoded = json_decode($booking['service_detail'], true);
+            if (is_array($decoded)) {
+                $service = $decoded;
+            }
+        }
+
+        // Render HTML để in PDF
+        ob_start();
+        include view_path('admin.bookings.export_contract');
+        $content = ob_get_clean();
+
+        // Output HTML (user có thể dùng Print to PDF của browser)
+        echo $content;
+        exit;
+    }
 }
 
 

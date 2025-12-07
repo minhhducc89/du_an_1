@@ -119,6 +119,7 @@ match ($act) {
     'booking-guest-delete' => $bookingController->deleteGuest(),
     'booking-guests-import'=> $bookingController->importGuests(),
     'booking-guests-export'=> $bookingController->exportGuests(),
+    'booking-contract-export'=> $bookingController->exportContract(),
 
     // Hồ sơ hướng dẫn viên
     'guide-profiles'        => $guideProfileController->index(),
