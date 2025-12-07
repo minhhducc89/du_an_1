@@ -12,9 +12,36 @@ class CustomerController
             throw new RuntimeException('Không thể kết nối cơ sở dữ liệu');
         }
 
-        // Lấy danh sách customers
-        $sql = "SELECT * FROM customers ORDER BY created_at DESC";
-        $stmt = $pdo->query($sql);
+        // Lấy tham số filter
+        $filterSearch = isset($_GET['search']) ? trim($_GET['search']) : '';
+        $filterStatus = isset($_GET['status']) && $_GET['status'] !== '' ? (int)$_GET['status'] : null;
+        $filterHasBooking = isset($_GET['has_booking']) && $_GET['has_booking'] !== '' ? $_GET['has_booking'] : null;
+
+        // Xây dựng query với filter
+        $where = [];
+        $params = [];
+
+        if ($filterSearch !== '') {
+            $where[] = '(c.name LIKE :search OR c.phone LIKE :search OR c.email LIKE :search OR c.company LIKE :search)';
+            $params[':search'] = '%' . $filterSearch . '%';
+        }
+
+        if ($filterStatus !== null) {
+            $where[] = 'c.status = :status';
+            $params[':status'] = $filterStatus;
+        }
+
+        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        // Lấy danh sách customers với filter
+        $sql = "SELECT * FROM customers c {$whereClause} ORDER BY c.created_at DESC";
+        
+        if (!empty($params)) {
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+        } else {
+            $stmt = $pdo->query($sql);
+        }
         $customers = $stmt->fetchAll();
 
         // Đếm số booking cho mỗi customer (dựa trên phone trong service_detail)
@@ -27,6 +54,24 @@ class CustomerController
             $customer['booking_count'] = (int)($row['count'] ?? 0);
         }
         unset($customer);
+
+        // Lọc theo has_booking sau khi đã đếm
+        if ($filterHasBooking !== null) {
+            if ($filterHasBooking === 'yes') {
+                $customers = array_filter($customers, fn($c) => ($c['booking_count'] ?? 0) > 0);
+            } elseif ($filterHasBooking === 'no') {
+                $customers = array_filter($customers, fn($c) => ($c['booking_count'] ?? 0) == 0);
+            }
+            // Re-index array sau khi filter
+            $customers = array_values($customers);
+        }
+
+        // Truyền filter values vào view
+        $filterValues = [
+            'search' => $filterSearch,
+            'status' => $filterStatus,
+            'has_booking' => $filterHasBooking,
+        ];
 
         ob_start();
         include view_path('admin.customers.index');

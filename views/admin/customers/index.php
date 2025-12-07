@@ -1,5 +1,6 @@
 <?php
 /** @var array $customers */
+/** @var array $filterValues */
 ?>
 
 <div class="row">
@@ -11,6 +12,51 @@
           <i class="bi bi-plus-circle me-1"></i> Tạo khách hàng
         </a>
       </div>
+      <!-- Bộ lọc -->
+      <div class="card-body border-bottom">
+        <form method="GET" action="<?= BASE_URL ?>?act=customers" class="row g-3">
+          <input type="hidden" name="act" value="customers">
+          
+          <div class="col-md-4">
+            <label class="form-label">Tìm kiếm</label>
+            <input 
+              type="text" 
+              name="search" 
+              class="form-control form-control-sm" 
+              placeholder="Tên, SĐT, Email, Công ty..."
+              value="<?= htmlspecialchars($filterValues['search'] ?? '') ?>"
+            >
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Trạng thái</label>
+            <select name="status" class="form-select form-select-sm">
+              <option value="">Tất cả</option>
+              <option value="1" <?= ($filterValues['status'] ?? null) == 1 ? 'selected' : '' ?>>Hoạt động</option>
+              <option value="0" <?= ($filterValues['status'] ?? null) === 0 ? 'selected' : '' ?>>Vô hiệu</option>
+            </select>
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Có booking</label>
+            <select name="has_booking" class="form-select form-select-sm">
+              <option value="">Tất cả</option>
+              <option value="yes" <?= ($filterValues['has_booking'] ?? null) == 'yes' ? 'selected' : '' ?>>Có booking</option>
+              <option value="no" <?= ($filterValues['has_booking'] ?? null) == 'no' ? 'selected' : '' ?>>Chưa có booking</option>
+            </select>
+          </div>
+          
+          <div class="col-md-4 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i class="bi bi-funnel me-1"></i> Lọc
+            </button>
+            <a href="<?= BASE_URL ?>?act=customers" class="btn btn-secondary btn-sm">
+              <i class="bi bi-x-circle me-1"></i> Xóa bộ lọc
+            </a>
+          </div>
+        </form>
+      </div>
+      
       <div class="card-body table-responsive p-0">
         <table class="table table-hover table-striped mb-0">
           <thead>
