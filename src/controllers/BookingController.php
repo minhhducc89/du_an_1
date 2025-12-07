@@ -13,80 +13,77 @@ class BookingController
         }
 
         // Lấy tham số filter
-        $filterTour = isset($_GET['tour']) && $_GET['tour'] !== '' ? (int)$_GET['tour'] : null;
-        $filterStatus = isset($_GET['status']) && $_GET['status'] !== '' ? (int)$_GET['status'] : null;
-        $filterGuide = isset($_GET['guide']) && $_GET['guide'] !== '' ? (int)$_GET['guide'] : null;
-        $filterDateFrom = isset($_GET['date_from']) && $_GET['date_from'] !== '' ? $_GET['date_from'] : null;
-        $filterDateTo = isset($_GET['date_to']) && $_GET['date_to'] !== '' ? $_GET['date_to'] : null;
+        $tourId = isset($_GET['tour_id']) && $_GET['tour_id'] !== '' ? (int)$_GET['tour_id'] : null;
+        $status = isset($_GET['status']) && $_GET['status'] !== '' ? (int)$_GET['status'] : null;
+        $guideId = isset($_GET['guide_id']) && $_GET['guide_id'] !== '' ? (int)$_GET['guide_id'] : null;
+        $dateFrom = isset($_GET['date_from']) && $_GET['date_from'] !== '' ? $_GET['date_from'] : null;
+        $dateTo = isset($_GET['date_to']) && $_GET['date_to'] !== '' ? $_GET['date_to'] : null;
+        $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
         // Xây dựng query với filter
-        $where = [];
-        $params = [];
-
-        if ($filterTour !== null) {
-            $where[] = 'b.tour_id = :tour_id';
-            $params[':tour_id'] = $filterTour;
-        }
-
-        if ($filterStatus !== null) {
-            $where[] = 'b.status = :status';
-            $params[':status'] = $filterStatus;
-        }
-
-        if ($filterGuide !== null) {
-            $where[] = 'b.assigned_guide_id = :guide_id';
-            $params[':guide_id'] = $filterGuide;
-        }
-
-        if ($filterDateFrom !== null) {
-            $where[] = 'b.start_date >= :date_from';
-            $params[':date_from'] = $filterDateFrom;
-        }
-
-        if ($filterDateTo !== null) {
-            $where[] = 'b.start_date <= :date_to';
-            $params[':date_to'] = $filterDateTo;
-        }
-
-        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-
         $sql = "
             SELECT b.*, t.name AS tour_name, ts.name AS status_name, u.name AS guide_name
             FROM bookings b
             LEFT JOIN tours t ON t.id = b.tour_id
             LEFT JOIN tour_statuses ts ON ts.id = b.status
             LEFT JOIN users u ON u.id = b.assigned_guide_id
-            {$whereClause}
-            ORDER BY b.created_at DESC
+            WHERE 1=1
         ";
+        $params = [];
+
+        if ($tourId !== null) {
+            $sql .= " AND b.tour_id = :tour_id";
+            $params[':tour_id'] = $tourId;
+        }
+
+        if ($status !== null) {
+            $sql .= " AND b.status = :status";
+            $params[':status'] = $status;
+        }
+
+        if ($guideId !== null) {
+            $sql .= " AND b.assigned_guide_id = :guide_id";
+            $params[':guide_id'] = $guideId;
+        }
+
+        if ($dateFrom !== null) {
+            $sql .= " AND b.start_date >= :date_from";
+            $params[':date_from'] = $dateFrom;
+        }
+
+        if ($dateTo !== null) {
+            $sql .= " AND b.start_date <= :date_to";
+            $params[':date_to'] = $dateTo;
+        }
+
+        if ($search !== '') {
+            $sql .= " AND (t.name LIKE :search OR b.service_detail LIKE :search)";
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        $sql .= " ORDER BY b.created_at DESC";
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         $bookings = $stmt->fetchAll();
 
-        // Lấy danh sách tour và guide để hiển thị trong filter
+        // Lấy danh sách tours và guides cho filter
         $tours = Tour::all();
-        
-        $guideSql = "
-            SELECT u.id, u.name
-            FROM users u
-            WHERE u.role IN ('guide', 'huong_dan_vien')
-              AND u.status = 1
-            ORDER BY u.name
-        ";
-        $guides = $pdo->query($guideSql)->fetchAll();
+        $guidesSql = "SELECT u.id, u.name FROM users u WHERE u.role = 'guide' AND u.status = 1 ORDER BY u.name";
+        $guides = $pdo->query($guidesSql)->fetchAll();
 
-        // Lấy danh sách trạng thái
-        $statusStmt = $pdo->query('SELECT * FROM tour_statuses ORDER BY id');
-        $statuses = $statusStmt->fetchAll();
+        // Lấy danh sách statuses
+        $statusesSql = "SELECT * FROM tour_statuses ORDER BY id";
+        $statuses = $pdo->query($statusesSql)->fetchAll();
 
-        // Truyền filter values vào view
-        $filterValues = [
-            'tour' => $filterTour,
-            'status' => $filterStatus,
-            'guide' => $filterGuide,
-            'date_from' => $filterDateFrom,
-            'date_to' => $filterDateTo,
+        // Lưu filter values để hiển thị lại trong form
+        $filters = [
+            'tour_id' => $tourId,
+            'status' => $status,
+            'guide_id' => $guideId,
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+            'search' => $search,
         ];
 
         ob_start();
@@ -131,6 +128,7 @@ class BookingController
             'end_date'            => '',
             'special_requirements'=> '',
             'notes'               => '',
+            'contract'            => '',
         ];
 
         ob_start();
@@ -177,6 +175,7 @@ class BookingController
         $endDate             = $_POST['end_date'] ?? '';
         $specialRequirements = trim($_POST['special_requirements'] ?? '');
         $notes               = trim($_POST['notes'] ?? '');
+        $contract            = trim($_POST['contract'] ?? '');
 
         $errors = [];
 
@@ -370,10 +369,10 @@ class BookingController
         $stmt = $pdo->prepare("
             INSERT INTO bookings
               (tour_id, created_by, assigned_guide_id, status, start_date, end_date,
-               schedule_detail, service_detail, diary, lists_file, notes)
+               schedule_detail, service_detail, diary, lists_file, notes, contract)
             VALUES
               (:tour_id, :created_by, NULL, :status, :start_date, :end_date,
-               :schedule_detail, :service_detail, NULL, NULL, :notes)
+               :schedule_detail, :service_detail, NULL, NULL, :notes, :contract)
         ");
         $stmt->execute([
             ':tour_id'        => $tourId,
@@ -384,6 +383,7 @@ class BookingController
             ':schedule_detail'=> null,
             ':service_detail' => $serviceDetail,
             ':notes'          => $notes,
+            ':contract'       => $contract ?: null,
         ]);
 
         $bookingId = (int)$pdo->lastInsertId();
@@ -456,6 +456,7 @@ class BookingController
             'end_date'            => $booking->end_date,
             'special_requirements'=> $service['special_requirements'] ?? '',
             'notes'               => $booking->notes ?? '',
+            'contract'            => $booking->contract ?? '',
         ];
 
         $errors = [];
@@ -519,6 +520,7 @@ class BookingController
         $endDate             = $_POST['end_date'] ?? '';
         $specialRequirements = trim($_POST['special_requirements'] ?? '');
         $notes               = trim($_POST['notes'] ?? '');
+        $contract            = trim($_POST['contract'] ?? '');
 
         $errors = [];
 
@@ -636,6 +638,7 @@ class BookingController
             'end_date'            => $endDate,
             'special_requirements'=> $specialRequirements,
             'notes'               => $notes,
+            'contract'            => $contract,
         ];
 
         $tours = Tour::all();
@@ -714,7 +717,8 @@ class BookingController
                 start_date = :start_date,
                 end_date = :end_date,
                 service_detail = :service_detail,
-                notes = :notes
+                notes = :notes,
+                contract = :contract
             WHERE id = :id
         ");
         $stmt->execute([
@@ -723,6 +727,7 @@ class BookingController
             ':end_date'       => $endDate ?: null,
             ':service_detail' => $serviceDetail,
             ':notes'          => $notes,
+            ':contract'       => $contract ?: null,
             ':id'             => $id,
         ]);
 
@@ -1119,6 +1124,60 @@ class BookingController
         // Render HTML để in
         ob_start();
         include view_path('admin.bookings.export_guests');
+        $content = ob_get_clean();
+
+        // Output HTML (user có thể dùng Print to PDF của browser)
+        echo $content;
+        exit;
+    }
+
+    // Xuất hợp đồng ra PDF
+    public function exportContract(): void
+    {
+        requireAdmin();
+
+        $bookingId = (int)($_GET['id'] ?? 0);
+
+        $pdo = getDB();
+        if ($pdo === null) {
+            throw new RuntimeException('Không thể kết nối cơ sở dữ liệu');
+        }
+
+        // Lấy thông tin booking
+        $sql = "
+            SELECT b.*, t.name AS tour_name, ts.name AS status_name
+            FROM bookings b
+            LEFT JOIN tours t ON t.id = b.tour_id
+            LEFT JOIN tour_statuses ts ON ts.id = b.status
+            WHERE b.id = :id
+            LIMIT 1
+        ";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':id' => $bookingId]);
+        $booking = $stmt->fetch();
+
+        if (!$booking) {
+            header('Location: ' . BASE_URL . '?act=bookings');
+            exit;
+        }
+
+        if (empty($booking['contract'])) {
+            header('Location: ' . BASE_URL . '?act=booking-show&id=' . $bookingId);
+            exit;
+        }
+
+        // Lấy thông tin service_detail
+        $service = [];
+        if (!empty($booking['service_detail'])) {
+            $decoded = json_decode($booking['service_detail'], true);
+            if (is_array($decoded)) {
+                $service = $decoded;
+            }
+        }
+
+        // Render HTML để in PDF
+        ob_start();
+        include view_path('admin.bookings.export_contract');
         $content = ob_get_clean();
 
         // Output HTML (user có thể dùng Print to PDF của browser)

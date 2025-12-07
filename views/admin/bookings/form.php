@@ -259,6 +259,31 @@ $bookingId = $isEdit ? (int)$_GET['id'] : 0;
             ><?= htmlspecialchars($old['notes'] ?? '') ?></textarea>
           </div>
 
+          <h5 class="mt-4 mb-2">Hợp đồng</h5>
+          
+          <div class="mb-3">
+            <label for="contract" class="form-label">Nội dung hợp đồng</label>
+            <div class="d-flex gap-2 mb-2">
+              <button type="button" class="btn btn-sm btn-outline-primary" onclick="loadContractTemplate()">
+                <i class="bi bi-file-earmark-text me-1"></i> Sử dụng mẫu hợp đồng
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearContract()">
+                <i class="bi bi-x-circle me-1"></i> Xóa nội dung
+              </button>
+            </div>
+            <textarea
+              class="form-control font-monospace"
+              id="contract"
+              name="contract"
+              rows="20"
+              placeholder="Nhấn 'Sử dụng mẫu hợp đồng' để tự động điền template mẫu..."
+              style="font-size: 12px;"
+            ><?= htmlspecialchars($old['contract'] ?? '') ?></textarea>
+            <small class="text-muted">
+              <i class="bi bi-info-circle"></i> Sử dụng mẫu hợp đồng sẽ tự động điền thông tin từ booking vào template chuẩn.
+            </small>
+          </div>
+
           <button type="submit" class="btn btn-primary">
             <?= $isEdit ? 'Cập nhật booking' : 'Lưu booking' ?>
           </button>
@@ -311,6 +336,129 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+// Hàm tải template hợp đồng mẫu
+function loadContractTemplate() {
+  const contractTextarea = document.getElementById('contract');
+  if (!contractTextarea) return;
+
+  // Lấy thông tin từ form
+  const tourSelect = document.getElementById('tour_id');
+  const tourName = tourSelect ? tourSelect.options[tourSelect.selectedIndex]?.text?.split('(')[0]?.trim() || 'Tour' : 'Tour';
+  
+  const customerName = document.getElementById('customer_name')?.value || '[Tên khách hàng]';
+  const customerPhone = document.getElementById('customer_phone')?.value || '[Số điện thoại]';
+  const customerEmail = document.getElementById('customer_email')?.value || '[Email]';
+  const customerAddress = document.getElementById('customer_address')?.value || '[Địa chỉ]';
+  
+  const startDate = document.getElementById('start_date')?.value || '';
+  const endDate = document.getElementById('end_date')?.value || '';
+  const adultQty = parseInt(document.getElementById('adult_qty')?.value || 0);
+  const childQty = parseInt(document.getElementById('child_qty')?.value || 0);
+  const bookingType = document.getElementById('booking_type')?.value || 'individual';
+  const specialRequirements = document.getElementById('special_requirements')?.value || '';
+  
+  // Format ngày
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '[Ngày]';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('vi-VN');
+  };
+  
+  const startDateFormatted = formatDate(startDate);
+  const endDateFormatted = endDate ? formatDate(endDate) : '[Ngày kết thúc]';
+  const today = new Date().toLocaleDateString('vi-VN');
+  const currentYear = new Date().getFullYear();
+  
+  // Xác định loại booking
+  const bookingTypeText = bookingType === 'group' ? 'Đoàn' : 'Khách lẻ';
+  const totalGuests = adultQty + childQty;
+  
+  // Tạo số hợp đồng (tạm thời dùng năm hiện tại)
+  const contractNumber = `HD-${currentYear}-XXX`;
+  
+  // Template hợp đồng
+  const template = `HỢP ĐỒNG DỊCH VỤ DU LỊCH
+Số: ${contractNumber}
+Ngày: ${today}
+
+BÊN A (BÊN CUNG CẤP DỊCH VỤ):
+CÔNG TY TNHH DU LỊCH ABC
+Địa chỉ: 123 Đường ABC, Quận XYZ, Hà Nội
+Điện thoại: 0243.123.456
+Email: info@dulichabc.com
+
+BÊN B (KHÁCH HÀNG):
+Họ tên: ${customerName}
+Số điện thoại: ${customerPhone}
+Email: ${customerEmail}
+Địa chỉ: ${customerAddress}
+
+ĐIỀU 1: THÔNG TIN TOUR
+- Tên tour: ${tourName}
+- Ngày khởi hành: ${startDateFormatted}
+- Ngày kết thúc: ${endDateFormatted}
+- Số lượng khách: ${adultQty > 0 ? adultQty + ' người lớn' : ''}${adultQty > 0 && childQty > 0 ? ', ' : ''}${childQty > 0 ? childQty + ' trẻ em' : ''} (Tổng: ${totalGuests} người)
+- Loại booking: ${bookingTypeText}
+
+ĐIỀU 2: GIÁ CẢ VÀ THANH TOÁN
+- Giá người lớn: [Giá người lớn] VNĐ/người
+- Giá trẻ em: [Giá trẻ em] VNĐ/người
+- Tổng giá trị hợp đồng: [Tổng tiền] VNĐ
+- Phương thức thanh toán: Chuyển khoản hoặc tiền mặt
+- Tình trạng thanh toán: [Đã thanh toán / Chờ thanh toán]
+
+ĐIỀU 3: DỊCH VỤ BAO GỒM
+- Vé tham quan
+- Ăn uống theo chương trình
+- Khách sạn
+- Xe đưa đón
+- Hướng dẫn viên tiếng Việt
+- Bảo hiểm du lịch
+
+${specialRequirements ? `ĐIỀU 4: YÊU CẦU ĐẶC BIỆT
+${specialRequirements}
+
+ĐIỀU 5: ĐIỀU KHOẢN HỦY TOUR` : `ĐIỀU 4: ĐIỀU KHOẢN HỦY TOUR`}
+- Hủy trước 7 ngày: Hoàn 50% giá trị tour
+- Hủy sau 7 ngày: Không hoàn tiền
+
+${specialRequirements ? `ĐIỀU 6: CAM KẾT` : `ĐIỀU 5: CAM KẾT`}
+Bên A cam kết:
+- Cung cấp đầy đủ dịch vụ theo đúng chương trình tour đã thỏa thuận
+- Đảm bảo an toàn và sức khỏe cho khách hàng
+${specialRequirements ? '- Tôn trọng và đáp ứng các yêu cầu đặc biệt về sức khỏe' : ''}
+
+Bên B cam kết:
+- Thanh toán đúng hạn và tuân thủ quy định của tour
+${specialRequirements ? '- Cung cấp thông tin chính xác về tình trạng sức khỏe' : ''}
+- Tuân thủ hướng dẫn của hướng dẫn viên trong suốt chuyến đi
+
+Hà Nội, ngày ${today.split('/')[0]} tháng ${today.split('/')[1]} năm ${currentYear}
+
+BÊN A                                    BÊN B
+(Ký và đóng dấu)                        (Ký tên)
+_________________                        _________________`;
+
+  // Điền vào textarea
+  contractTextarea.value = template;
+  
+  // Scroll đến textarea
+  contractTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  contractTextarea.focus();
+  
+  // Thông báo
+  alert('Đã tải mẫu hợp đồng! Vui lòng kiểm tra và điều chỉnh các thông tin trong dấu ngoặc vuông [].');
+}
+
+// Hàm xóa nội dung hợp đồng
+function clearContract() {
+  const contractTextarea = document.getElementById('contract');
+  if (contractTextarea && confirm('Bạn có chắc muốn xóa toàn bộ nội dung hợp đồng?')) {
+    contractTextarea.value = '';
+    contractTextarea.focus();
+  }
+}
 </script>
 
 
