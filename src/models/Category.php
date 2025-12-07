@@ -1,34 +1,45 @@
 <?php
-class Category{
+
+// Model Category thao tác với bảng categories
+class Category
+{
     public $id;
     public $name;
     public $description;
     public $status;
 
-    public function __construct($id, $name, $description, $status){
+    public function __construct(array $data = [])
+    {
         $this->id          = $data['id'] ?? null;
         $this->name        = $data['name'] ?? '';
         $this->description = $data['description'] ?? '';
         $this->status      = $data['status'] ?? 1;
     }
 
-    public static function all($includeInactive = false) : array{
+    /**
+     * Lấy toàn bộ danh mục (mặc định chỉ lấy status = 1)
+     */
+    public static function all($includeInactive = false): array
+    {
         $pdo = getDB();
-        if($pdo === null){
+        if ($pdo === null) {
             return [];
         }
 
-        if($includeInactive){
-            $stmt = $pdo->prepare("SELECT * FROM categories ORDER BY created_at DESC");
+        if ($includeInactive) {
+            $stmt = $pdo->query('SELECT * FROM categories ORDER BY created_at DESC');
         } else {
-            $stmt = $pdo->prepare("SELECT * FROM categories WHERE status = 1 ORDER BY created_at DESC");
+            $stmt = $pdo->prepare('SELECT * FROM categories WHERE status = 1 ORDER BY created_at DESC');
             $stmt->execute();
         }
-        
+
         $rows = $stmt->fetchAll();
         return array_map(fn($row) => new Category($row), $rows);
     }
 
+    /**
+     * Tìm theo id
+     */
     public static function find($id): ?Category
     {
         $pdo = getDB();
@@ -43,6 +54,9 @@ class Category{
         return $row ? new Category($row) : null;
     }
 
+    /**
+     * Kiểm tra tên có bị trùng không (case-insensitive)
+     */
     public static function existsByName(string $name, ?int $excludeId = null): bool
     {
         $pdo = getDB();
@@ -63,6 +77,9 @@ class Category{
         return (int)$stmt->fetchColumn() > 0;
     }
 
+    /**
+     * Lưu (insert/update)
+     */
     public function save(): bool
     {
         $pdo = getDB();
@@ -99,9 +116,14 @@ class Category{
         ]);
     }
 
-    public function softDelete() : bool{
-        $this->statys = 0;
+    /**
+     * Xóa mềm: set status = 0
+     */
+    public function softDelete(): bool
+    {
+        $this->status = 0;
         return $this->save();
     }
 }
-?>
+
+
