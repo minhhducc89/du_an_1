@@ -123,13 +123,22 @@
     <div class="card mb-3">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="card-title mb-0">Danh sách khách đoàn</h3>
-        <div>
+        <div class="d-flex gap-2">
           <a
             href="<?= BASE_URL ?>?act=booking-guests-export&id=<?= (int)$booking['id'] ?>"
             target="_blank"
             class="btn btn-sm btn-outline-success"
+            title="In danh sách khách"
           >
-            <i class="bi bi-file-earmark-pdf"></i> Xuất PDF
+            <i class="bi bi-file-earmark-pdf"></i> In danh sách
+          </a>
+          <a
+            href="<?= BASE_URL ?>?act=booking-guests-export&id=<?= (int)$booking['id'] ?>&attendance=1"
+            target="_blank"
+            class="btn btn-sm btn-outline-primary"
+            title="In danh sách kèm điểm danh"
+          >
+            <i class="bi bi-check-square"></i> In kèm điểm danh
           </a>
         </div>
       </div>

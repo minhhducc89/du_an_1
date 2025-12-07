@@ -1091,9 +1091,11 @@ class BookingController
     // Export danh sách khách ra HTML (để in PDF)
     public function exportGuests(): void
     {
-        requireAdmin();
+        requireGuideOrAdmin();
 
         $bookingId = (int)($_GET['id'] ?? 0);
+        $currentUser = getCurrentUser();
+        $includeAttendance = isset($_GET['attendance']) && $_GET['attendance'] == '1'; // Tham số để hiển thị điểm danh
 
         $pdo = getDB();
         if ($pdo === null) {
@@ -1114,12 +1116,32 @@ class BookingController
         $booking = $stmt->fetch();
 
         if (!$booking) {
-            header('Location: ' . BASE_URL . '?act=bookings');
+            // Redirect tùy theo role
+            if ($currentUser && $currentUser->isAdmin()) {
+                header('Location: ' . BASE_URL . '?act=bookings');
+            } else {
+                header('Location: ' . BASE_URL . '?act=guide-schedule');
+            }
+            exit;
+        }
+
+        // Nếu là guide, kiểm tra booking có được phân công cho guide này không
+        if ($currentUser && $currentUser->isGuide() && $booking['assigned_guide_id'] != $currentUser->id) {
+            header('Location: ' . BASE_URL . '?act=guide-schedule');
             exit;
         }
 
         // Lấy danh sách khách
         $guests = TourGuest::allByBooking($bookingId);
+
+        // Lấy trạng thái điểm danh nếu cần
+        $attendance = [];
+        if ($includeAttendance && !empty($booking['schedule_detail'])) {
+            $scheduleDetail = json_decode($booking['schedule_detail'], true);
+            if (is_array($scheduleDetail) && isset($scheduleDetail['attendance'])) {
+                $attendance = $scheduleDetail['attendance'];
+            }
+        }
 
         // Render HTML để in
         ob_start();
@@ -1134,9 +1156,10 @@ class BookingController
     // Xuất hợp đồng ra PDF
     public function exportContract(): void
     {
-        requireAdmin();
+        requireGuideOrAdmin();
 
         $bookingId = (int)($_GET['id'] ?? 0);
+        $currentUser = getCurrentUser();
 
         $pdo = getDB();
         if ($pdo === null) {
@@ -1157,12 +1180,28 @@ class BookingController
         $booking = $stmt->fetch();
 
         if (!$booking) {
-            header('Location: ' . BASE_URL . '?act=bookings');
+            // Redirect tùy theo role
+            if ($currentUser && $currentUser->isAdmin()) {
+                header('Location: ' . BASE_URL . '?act=bookings');
+            } else {
+                header('Location: ' . BASE_URL . '?act=guide-schedule');
+            }
+            exit;
+        }
+
+        // Nếu là guide, kiểm tra booking có được phân công cho guide này không
+        if ($currentUser && $currentUser->isGuide() && $booking['assigned_guide_id'] != $currentUser->id) {
+            header('Location: ' . BASE_URL . '?act=guide-schedule');
             exit;
         }
 
         if (empty($booking['contract'])) {
-            header('Location: ' . BASE_URL . '?act=booking-show&id=' . $bookingId);
+            // Redirect tùy theo role
+            if ($currentUser && $currentUser->isAdmin()) {
+                header('Location: ' . BASE_URL . '?act=booking-show&id=' . $bookingId);
+            } else {
+                header('Location: ' . BASE_URL . '?act=guide-schedule-detail&id=' . $bookingId);
+            }
             exit;
         }
 

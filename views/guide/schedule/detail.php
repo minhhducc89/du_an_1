@@ -89,6 +89,26 @@
           <dd class="col-sm-8">
             <?= nl2br(htmlspecialchars($booking['notes'] ?? '')) ?: '<span class="text-muted">Không có</span>' ?>
           </dd>
+
+          <dt class="col-sm-4">Hợp đồng</dt>
+          <dd class="col-sm-8">
+            <?php if (!empty($booking['contract'])): ?>
+              <div class="alert alert-light border mb-2">
+                <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit; max-height: 200px; overflow-y: auto; font-size: 12px;"><?= htmlspecialchars($booking['contract']) ?></pre>
+              </div>
+              <div>
+                <a 
+                  href="<?= BASE_URL ?>?act=booking-contract-export&id=<?= (int)$booking['id'] ?>" 
+                  target="_blank"
+                  class="btn btn-sm btn-danger"
+                >
+                  <i class="bi bi-file-earmark-pdf me-1"></i> Xem/Tải hợp đồng PDF
+                </a>
+              </div>
+            <?php else: ?>
+              <span class="text-muted">Chưa có thông tin hợp đồng</span>
+            <?php endif; ?>
+          </dd>
         </dl>
       </div>
     </div>
@@ -146,6 +166,31 @@
           <a href="<?= BASE_URL ?>?act=guide-edit-special-requirements&id=<?= (int)$booking['id'] ?>" class="btn btn-warning">
             <i class="bi bi-exclamation-triangle"></i> Cập nhật yêu cầu đặc biệt
           </a>
+          <?php if (!empty($booking['contract'])): ?>
+            <a 
+              href="<?= BASE_URL ?>?act=booking-contract-export&id=<?= (int)$booking['id'] ?>" 
+              target="_blank"
+              class="btn btn-danger"
+            >
+              <i class="bi bi-file-earmark-pdf"></i> Xem hợp đồng PDF
+            </a>
+          <?php endif; ?>
+          <?php if (!empty($guests)): ?>
+            <a 
+              href="<?= BASE_URL ?>?act=booking-guests-export&id=<?= (int)$booking['id'] ?>" 
+              target="_blank"
+              class="btn btn-success"
+            >
+              <i class="bi bi-file-earmark-text"></i> In danh sách khách
+            </a>
+            <a 
+              href="<?= BASE_URL ?>?act=booking-guests-export&id=<?= (int)$booking['id'] ?>&attendance=1" 
+              target="_blank"
+              class="btn btn-primary"
+            >
+              <i class="bi bi-check-square"></i> In danh sách & điểm danh
+            </a>
+          <?php endif; ?>
         </div>
       </div>
     </div>

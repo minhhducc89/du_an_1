@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Danh sách khách đoàn - Booking #<?= (int)$booking['id'] ?></title>
+  <title><?= ($includeAttendance ?? false) ? 'Danh sách khách đoàn & Điểm danh' : 'Danh sách khách đoàn' ?> - Booking #<?= (int)$booking['id'] ?></title>
   <style>
     @media print {
       .no-print { display: none; }
@@ -90,8 +90,11 @@
   </div>
 
   <div class="header">
-    <h1>DANH SÁCH KHÁCH ĐOÀN</h1>
+    <h1><?= ($includeAttendance ?? false) ? 'DANH SÁCH KHÁCH ĐOÀN & ĐIỂM DANH' : 'DANH SÁCH KHÁCH ĐOÀN' ?></h1>
     <p>Booking #<?= (int)$booking['id'] ?></p>
+    <?php if ($includeAttendance ?? false): ?>
+      <p style="font-size: 14px; margin-top: 5px;">Ngày điểm danh: <?= date('d/m/Y H:i:s') ?></p>
+    <?php endif; ?>
   </div>
 
   <div class="info">
@@ -127,25 +130,45 @@
         <th style="width: 15%;">Ngày sinh</th>
         <th style="width: 10%;">Giới tính</th>
         <th style="width: 20%;">Số hộ chiếu/CMND</th>
-        <th style="width: 20%;">Ghi chú</th>
+        <?php if ($includeAttendance ?? false): ?>
+          <th style="width: 20%;">Điểm danh</th>
+        <?php else: ?>
+          <th style="width: 20%;">Ghi chú</th>
+        <?php endif; ?>
       </tr>
     </thead>
     <tbody>
       <?php if (empty($guests)): ?>
         <tr>
-          <td colspan="6" style="text-align: center; padding: 20px;">
+          <td colspan="<?= ($includeAttendance ?? false) ? '6' : '6' ?>" style="text-align: center; padding: 20px;">
             Chưa có khách nào trong danh sách
           </td>
         </tr>
       <?php else: ?>
         <?php foreach ($guests as $idx => $guest): ?>
+          <?php
+            $isPresent = false;
+            if ($includeAttendance ?? false) {
+                $isPresent = isset($attendance[$guest->id]) && $attendance[$guest->id] === 'present';
+            }
+          ?>
           <tr>
             <td><?= $idx + 1 ?></td>
             <td><?= htmlspecialchars($guest->fullname) ?></td>
             <td><?= $guest->dob ? htmlspecialchars($guest->dob) : '-' ?></td>
             <td><?= $guest->gender ? htmlspecialchars($guest->gender) : '-' ?></td>
             <td><?= $guest->passport_number ? htmlspecialchars($guest->passport_number) : '-' ?></td>
-            <td></td>
+            <?php if ($includeAttendance ?? false): ?>
+              <td style="text-align: center;">
+                <?php if ($isPresent): ?>
+                  <strong style="color: #28a745;">✓ Có mặt</strong>
+                <?php else: ?>
+                  <span style="color: #6c757d;">-</span>
+                <?php endif; ?>
+              </td>
+            <?php else: ?>
+              <td></td>
+            <?php endif; ?>
           </tr>
         <?php endforeach; ?>
       <?php endif; ?>

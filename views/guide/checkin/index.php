@@ -112,10 +112,28 @@
               </table>
             </div>
 
-            <div class="mt-4">
-              <button type="submit" class="btn btn-primary btn-lg w-100">
+            <div class="mt-4 d-flex gap-2">
+              <button type="submit" class="btn btn-primary btn-lg flex-fill">
                 <i class="bi bi-check-circle"></i> Lưu điểm danh
               </button>
+              <?php if (!empty($guests)): ?>
+                <a 
+                  href="<?= BASE_URL ?>?act=booking-guests-export&id=<?= (int)$booking['id'] ?>" 
+                  target="_blank"
+                  class="btn btn-success btn-lg"
+                  title="In danh sách khách"
+                >
+                  <i class="bi bi-printer"></i>
+                </a>
+                <a 
+                  href="<?= BASE_URL ?>?act=booking-guests-export&id=<?= (int)$booking['id'] ?>&attendance=1" 
+                  target="_blank"
+                  class="btn btn-info btn-lg"
+                  title="In danh sách kèm điểm danh"
+                >
+                  <i class="bi bi-file-earmark-pdf"></i>
+                </a>
+              <?php endif; ?>
             </div>
           <?php endif; ?>
         </form>
