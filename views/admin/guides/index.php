@@ -1,5 +1,7 @@
 <?php
 /** @var array $profiles */
+/** @var array $groupTypes */
+/** @var array $filterValues */
 ?>
 
 <div class="row">
@@ -11,6 +13,56 @@
           <i class="bi bi-plus-circle me-1"></i> Tạo hồ sơ
         </a>
       </div>
+      <!-- Bộ lọc -->
+      <div class="card-body border-bottom">
+        <form method="GET" action="<?= BASE_URL ?>?act=guide-profiles" class="row g-3">
+          <input type="hidden" name="act" value="guide-profiles">
+          
+          <div class="col-md-4">
+            <label class="form-label">Tìm kiếm</label>
+            <input 
+              type="text" 
+              name="search" 
+              class="form-control form-control-sm" 
+              placeholder="Tên, email, số điện thoại..."
+              value="<?= htmlspecialchars($filterValues['search'] ?? '') ?>"
+            >
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Đánh giá tối thiểu</label>
+            <select name="rating" class="form-select form-select-sm">
+              <option value="">Tất cả</option>
+              <option value="4.5" <?= ($filterValues['rating'] ?? null) == 4.5 ? 'selected' : '' ?>>4.5+</option>
+              <option value="4.0" <?= ($filterValues['rating'] ?? null) == 4.0 ? 'selected' : '' ?>>4.0+</option>
+              <option value="3.5" <?= ($filterValues['rating'] ?? null) == 3.5 ? 'selected' : '' ?>>3.5+</option>
+              <option value="3.0" <?= ($filterValues['rating'] ?? null) == 3.0 ? 'selected' : '' ?>>3.0+</option>
+            </select>
+          </div>
+          
+          <div class="col-md-3">
+            <label class="form-label">Loại đoàn</label>
+            <select name="group_type" class="form-select form-select-sm">
+              <option value="">Tất cả</option>
+              <?php foreach ($groupTypes as $gt): ?>
+                <option value="<?= htmlspecialchars($gt) ?>" <?= ($filterValues['group_type'] ?? null) == $gt ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($gt) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          
+          <div class="col-md-3 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i class="bi bi-funnel me-1"></i> Lọc
+            </button>
+            <a href="<?= BASE_URL ?>?act=guide-profiles" class="btn btn-secondary btn-sm">
+              <i class="bi bi-x-circle me-1"></i> Xóa bộ lọc
+            </a>
+          </div>
+        </form>
+      </div>
+      
       <div class="card-body table-responsive p-0">
         <table class="table table-hover table-striped mb-0">
           <thead>
