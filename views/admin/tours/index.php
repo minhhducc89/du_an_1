@@ -2,6 +2,7 @@
 /** @var Tour[] $tours */
 /** @var array $categoryNames */
 /** @var string|null $error */
+/** @var array $filterValues */
 ?>
 
 <div class="row">
@@ -13,6 +14,54 @@
           <i class="bi bi-plus-circle me-1"></i> Thêm tour
         </a>
       </div>
+      <!-- Bộ lọc -->
+      <div class="card-body border-bottom">
+        <form method="GET" action="<?= BASE_URL ?>?act=tours" class="row g-3">
+          <input type="hidden" name="act" value="tours">
+          
+          <div class="col-md-3">
+            <label class="form-label">Tìm kiếm</label>
+            <input 
+              type="text" 
+              name="search" 
+              class="form-control form-control-sm" 
+              placeholder="Tên tour, mô tả..."
+              value="<?= htmlspecialchars($filterValues['search'] ?? '') ?>"
+            >
+          </div>
+          
+          <div class="col-md-3">
+            <label class="form-label">Danh mục</label>
+            <select name="category" class="form-select form-select-sm">
+              <option value="">Tất cả</option>
+              <?php foreach ($categoryNames as $catId => $catName): ?>
+                <option value="<?= $catId ?>" <?= ($filterValues['category'] ?? null) == $catId ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($catName) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Trạng thái</label>
+            <select name="status" class="form-select form-select-sm">
+              <option value="">Tất cả</option>
+              <option value="1" <?= ($filterValues['status'] ?? null) == 1 ? 'selected' : '' ?>>Đang bán</option>
+              <option value="0" <?= ($filterValues['status'] ?? null) === 0 ? 'selected' : '' ?>>Ngừng bán</option>
+            </select>
+          </div>
+          
+          <div class="col-md-4 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i class="bi bi-funnel me-1"></i> Lọc
+            </button>
+            <a href="<?= BASE_URL ?>?act=tours" class="btn btn-secondary btn-sm">
+              <i class="bi bi-x-circle me-1"></i> Xóa bộ lọc
+            </a>
+          </div>
+        </form>
+      </div>
+      
       <div class="card-body table-responsive p-0">
         <?php if ($error === 'cannot_delete_tour_with_bookings'): ?>
           <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">

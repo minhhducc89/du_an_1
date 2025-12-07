@@ -1,5 +1,9 @@
 <?php
 /** @var array $bookings */
+/** @var array $tours */
+/** @var array $guides */
+/** @var array $statuses */
+/** @var array $filterValues */
 ?>
 
 <div class="row">
@@ -11,6 +15,81 @@
           <i class="bi bi-plus-circle me-1"></i> Tạo booking
         </a>
       </div>
+      <!-- Bộ lọc -->
+      <div class="card-body border-bottom">
+        <form method="GET" action="<?= BASE_URL ?>?act=bookings" class="row g-3">
+          <input type="hidden" name="act" value="bookings">
+          
+          <div class="col-md-3">
+            <label class="form-label">Tour</label>
+            <select name="tour" class="form-select form-select-sm">
+              <option value="">Tất cả</option>
+              <?php foreach ($tours as $tour): ?>
+                <option value="<?= $tour->id ?>" <?= ($filterValues['tour'] ?? null) == $tour->id ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($tour->name) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Trạng thái</label>
+            <select name="status" class="form-select form-select-sm">
+              <option value="">Tất cả</option>
+              <?php foreach ($statuses as $status): ?>
+                <option value="<?= $status['id'] ?>" <?= ($filterValues['status'] ?? null) == $status['id'] ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($status['name']) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Hướng dẫn viên</label>
+            <select name="guide" class="form-select form-select-sm">
+              <option value="">Tất cả</option>
+              <?php foreach ($guides as $guide): ?>
+                <option value="<?= $guide['id'] ?>" <?= ($filterValues['guide'] ?? null) == $guide['id'] ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($guide['name']) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Từ ngày</label>
+            <input 
+              type="date" 
+              name="date_from" 
+              class="form-control form-control-sm" 
+              value="<?= htmlspecialchars($filterValues['date_from'] ?? '') ?>"
+            >
+          </div>
+          
+          <div class="col-md-2">
+            <label class="form-label">Đến ngày</label>
+            <input 
+              type="date" 
+              name="date_to" 
+              class="form-control form-control-sm" 
+              value="<?= htmlspecialchars($filterValues['date_to'] ?? '') ?>"
+            >
+          </div>
+          
+          <div class="col-md-1 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary btn-sm w-100">
+              <i class="bi bi-funnel"></i>
+            </button>
+          </div>
+          
+          <div class="col-12">
+            <a href="<?= BASE_URL ?>?act=bookings" class="btn btn-secondary btn-sm">
+              <i class="bi bi-x-circle me-1"></i> Xóa bộ lọc
+            </a>
+          </div>
+        </form>
+      </div>
+      
       <div class="card-body table-responsive p-0">
         <table class="table table-hover table-striped mb-0">
           <thead>

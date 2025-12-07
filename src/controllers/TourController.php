@@ -8,7 +8,49 @@ class TourController
     {
         requireAdmin();
 
-        $tours      = Tour::all();
+        $pdo = getDB();
+        if ($pdo === null) {
+            throw new RuntimeException('Không thể kết nối cơ sở dữ liệu');
+        }
+
+        // Lấy tham số filter
+        $filterCategory = isset($_GET['category']) && $_GET['category'] !== '' ? (int)$_GET['category'] : null;
+        $filterStatus = isset($_GET['status']) && $_GET['status'] !== '' ? (int)$_GET['status'] : null;
+        $filterSearch = isset($_GET['search']) ? trim($_GET['search']) : '';
+
+        // Xây dựng query với filter
+        $where = [];
+        $params = [];
+
+        if ($filterCategory !== null) {
+            $where[] = 't.category_id = :category_id';
+            $params[':category_id'] = $filterCategory;
+        }
+
+        if ($filterStatus !== null) {
+            $where[] = 't.status = :status';
+            $params[':status'] = $filterStatus;
+        }
+
+        if ($filterSearch !== '') {
+            $where[] = '(t.name LIKE :search OR t.description LIKE :search)';
+            $params[':search'] = '%' . $filterSearch . '%';
+        }
+
+        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        $sql = "
+            SELECT t.*
+            FROM tours t
+            {$whereClause}
+            ORDER BY t.created_at DESC
+        ";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+        $tours = array_map(fn($row) => new Tour($row), $rows);
+
         $categories = Category::all(true);
 
         // Map category_id -> name để hiển thị nhanh
@@ -19,6 +61,13 @@ class TourController
 
         // Lấy thông báo lỗi nếu có
         $error = $_GET['error'] ?? null;
+
+        // Truyền filter values vào view
+        $filterValues = [
+            'category' => $filterCategory,
+            'status' => $filterStatus,
+            'search' => $filterSearch,
+        ];
 
         ob_start();
         include view_path('admin.tours.index');

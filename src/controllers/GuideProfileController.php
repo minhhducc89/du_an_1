@@ -12,14 +12,59 @@ class GuideProfileController
             throw new RuntimeException('Không thể kết nối cơ sở dữ liệu');
         }
 
+        // Lấy tham số filter
+        $filterSearch = isset($_GET['search']) ? trim($_GET['search']) : '';
+        $filterRating = isset($_GET['rating']) && $_GET['rating'] !== '' ? (float)$_GET['rating'] : null;
+        $filterGroupType = isset($_GET['group_type']) && $_GET['group_type'] !== '' ? trim($_GET['group_type']) : null;
+
+        // Xây dựng query với filter
+        $where = [];
+        $params = [];
+
+        if ($filterSearch !== '') {
+            $where[] = '(u.name LIKE :search OR u.email LIKE :search OR gp.phone LIKE :search)';
+            $params[':search'] = '%' . $filterSearch . '%';
+        }
+
+        if ($filterRating !== null) {
+            $where[] = 'gp.rating >= :rating';
+            $params[':rating'] = $filterRating;
+        }
+
+        if ($filterGroupType !== null) {
+            $where[] = 'gp.group_type = :group_type';
+            $params[':group_type'] = $filterGroupType;
+        }
+
+        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
         $sql = "
             SELECT gp.*, u.name AS user_name, u.email AS user_email
             FROM guide_profiles gp
             LEFT JOIN users u ON u.id = gp.user_id
+            {$whereClause}
             ORDER BY gp.created_at DESC
         ";
-        $stmt = $pdo->query($sql);
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $profiles = $stmt->fetchAll();
+
+        // Lấy danh sách group_type duy nhất để hiển thị trong filter
+        $groupTypesStmt = $pdo->query("
+            SELECT DISTINCT group_type 
+            FROM guide_profiles 
+            WHERE group_type IS NOT NULL AND group_type != ''
+            ORDER BY group_type
+        ");
+        $groupTypes = $groupTypesStmt->fetchAll(PDO::FETCH_COLUMN);
+
+        // Truyền filter values vào view
+        $filterValues = [
+            'search' => $filterSearch,
+            'rating' => $filterRating,
+            'group_type' => $filterGroupType,
+        ];
 
         ob_start();
         include view_path('admin.guides.index');
