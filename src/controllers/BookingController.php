@@ -13,9 +13,9 @@ class BookingController
         }
 
         // Lấy tham số filter
-        $tourId = isset($_GET['tour_id']) && $_GET['tour_id'] !== '' ? (int)$_GET['tour_id'] : null;
+        $tourId = isset($_GET['tour']) && $_GET['tour'] !== '' ? (int)$_GET['tour'] : null;
         $status = isset($_GET['status']) && $_GET['status'] !== '' ? (int)$_GET['status'] : null;
-        $guideId = isset($_GET['guide_id']) && $_GET['guide_id'] !== '' ? (int)$_GET['guide_id'] : null;
+        $guideId = isset($_GET['guide']) && $_GET['guide'] !== '' ? (int)$_GET['guide'] : null;
         $dateFrom = isset($_GET['date_from']) && $_GET['date_from'] !== '' ? $_GET['date_from'] : null;
         $dateTo = isset($_GET['date_to']) && $_GET['date_to'] !== '' ? $_GET['date_to'] : null;
         $search = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -78,9 +78,9 @@ class BookingController
 
         // Lưu filter values để hiển thị lại trong form
         $filters = [
-            'tour_id' => $tourId,
+            'tour' => $tourId,
             'status' => $status,
-            'guide_id' => $guideId,
+            'guide' => $guideId,
             'date_from' => $dateFrom,
             'date_to' => $dateTo,
             'search' => $search,
