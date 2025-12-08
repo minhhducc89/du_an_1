@@ -144,7 +144,7 @@ $isEdit = !empty($old['id']);
               name="schedule"
               rows="4"
               placeholder="Ví dụ: Ngày 1: ...&#10;Ngày 2: ..."
-            ><?= htmlspecialchars($old['schedule'] ?? '') ?></textarea>
+            ><?= htmlspecialchars((string)($old['schedule'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">
@@ -177,7 +177,7 @@ $isEdit = !empty($old['id']);
               name="policies"
               rows="3"
               placeholder="Ví dụ: Không hoàn tiền khi hủy trong vòng 48h"
-            ><?= htmlspecialchars($old['policies'] ?? '') ?></textarea>
+            ><?= htmlspecialchars((string)($old['policies'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">
@@ -188,7 +188,7 @@ $isEdit = !empty($old['id']);
               name="suppliers"
               rows="3"
               placeholder="Ví dụ: Vinpearl Hotel, Xe Hùng Mạnh"
-            ><?= htmlspecialchars($old['suppliers'] ?? '') ?></textarea>
+            ><?= htmlspecialchars((string)($old['suppliers'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">

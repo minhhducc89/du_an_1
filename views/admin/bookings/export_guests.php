@@ -154,7 +154,7 @@
           ?>
           <tr>
             <td><?= $idx + 1 ?></td>
-            <td><?= htmlspecialchars($guest->fullname) ?></td>
+            <td><?= htmlspecialchars($guest->fullname ?? '') ?></td>
             <td><?= $guest->dob ? htmlspecialchars($guest->dob) : '-' ?></td>
             <td><?= $guest->gender ? htmlspecialchars($guest->gender) : '-' ?></td>
             <td><?= $guest->passport_number ? htmlspecialchars($guest->passport_number) : '-' ?></td>

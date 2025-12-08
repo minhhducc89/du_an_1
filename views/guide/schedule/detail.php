@@ -29,7 +29,7 @@
           <dd class="col-sm-8">
             <strong><?= htmlspecialchars($booking['tour_name'] ?? 'Không xác định') ?></strong>
             <?php if ($tour && !empty($tour['description'])): ?>
-              <div class="text-muted small mt-1"><?= nl2br(htmlspecialchars($tour['description'])) ?></div>
+              <div class="text-muted small mt-1"><?= nl2br(htmlspecialchars($tour['description'] ?? '')) ?></div>
             <?php endif; ?>
           </dd>
 
@@ -37,7 +37,7 @@
           <dd class="col-sm-8">#<?= (int)$booking['id'] ?></dd>
 
           <dt class="col-sm-4">Ngày khởi hành</dt>
-          <dd class="col-sm-8"><?= htmlspecialchars($booking['start_date']) ?></dd>
+          <dd class="col-sm-8"><?= htmlspecialchars($booking['start_date'] ?? '') ?></dd>
 
           <dt class="col-sm-4">Ngày kết thúc</dt>
           <dd class="col-sm-8">
@@ -72,7 +72,7 @@
             <?php if (!empty($service['special_requirements'])): ?>
               <div class="alert alert-warning mb-0">
                 <i class="bi bi-exclamation-triangle"></i>
-                <?= nl2br(htmlspecialchars($service['special_requirements'])) ?>
+                <?= nl2br(htmlspecialchars($service['special_requirements'] ?? '')) ?>
               </div>
               <a href="<?= BASE_URL ?>?act=guide-edit-special-requirements&id=<?= (int)$booking['id'] ?>" class="btn btn-sm btn-outline-warning mt-2">
                 <i class="bi bi-pencil"></i> Cập nhật yêu cầu đặc biệt
@@ -94,7 +94,7 @@
           <dd class="col-sm-8">
             <?php if (!empty($booking['contract'])): ?>
               <div class="alert alert-light border mb-2">
-                <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit; max-height: 200px; overflow-y: auto; font-size: 12px;"><?= htmlspecialchars($booking['contract']) ?></pre>
+                <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit; max-height: 200px; overflow-y: auto; font-size: 12px;"><?= htmlspecialchars($booking['contract'] ?? '') ?></pre>
               </div>
               <div>
                 <a 
@@ -135,7 +135,7 @@
                 <?php foreach ($guests as $index => $guest): ?>
                   <tr>
                     <td><?= $index + 1 ?></td>
-                    <td><?= htmlspecialchars($guest->fullname) ?></td>
+                    <td><?= htmlspecialchars($guest->fullname ?? '') ?></td>
                     <td><?= $guest->dob ? htmlspecialchars($guest->dob) : '-' ?></td>
                     <td><?= $guest->gender ? htmlspecialchars($guest->gender) : '-' ?></td>
                     <td><?= $guest->passport_number ? htmlspecialchars($guest->passport_number) : '-' ?></td>
