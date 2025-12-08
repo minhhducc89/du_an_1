@@ -247,7 +247,7 @@
     <div class="section">
       <div class="section-title">ĐIỀU 3: YÊU CẦU ĐẶC BIỆT</div>
       <div class="section-content">
-        <p><?= nl2br(htmlspecialchars($service['special_requirements'])) ?></p>
+        <p><?= nl2br(htmlspecialchars($service['special_requirements'] ?? '')) ?></p>
       </div>
     </div>
     <?php endif; ?>
@@ -255,7 +255,7 @@
     <div class="section">
       <div class="section-title">NỘI DUNG HỢP ĐỒNG</div>
       <div class="section-content" style="white-space: pre-wrap; font-family: 'Times New Roman', serif;">
-        <?= htmlspecialchars($booking['contract']) ?>
+        <?= htmlspecialchars($booking['contract'] ?? '') ?>
       </div>
     </div>
 

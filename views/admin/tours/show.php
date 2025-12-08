@@ -78,8 +78,11 @@
         <h3 class="card-title mb-0">Lịch trình chi tiết</h3>
       </div>
       <div class="card-body">
-        <?php if (trim($scheduleText) !== ''): ?>
-          <pre class="mb-0" style="white-space: pre-wrap; word-break: break-word;"><?= htmlspecialchars($scheduleText) ?></pre>
+        <?php 
+          $scheduleTextSafe = is_string($scheduleText) ? trim($scheduleText) : '';
+        ?>
+        <?php if ($scheduleTextSafe !== ''): ?>
+          <pre class="mb-0" style="white-space: pre-wrap; word-break: break-word;"><?= htmlspecialchars($scheduleTextSafe) ?></pre>
         <?php else: ?>
           <p class="text-muted mb-0">Chưa có thông tin lịch trình.</p>
         <?php endif; ?>
@@ -91,8 +94,11 @@
         <h3 class="card-title mb-0">Chính sách</h3>
       </div>
       <div class="card-body">
-        <?php if (trim($policiesText) !== ''): ?>
-          <pre class="mb-0" style="white-space: pre-wrap; word-break: break-word;"><?= htmlspecialchars($policiesText) ?></pre>
+        <?php 
+          $policiesTextSafe = is_string($policiesText) ? trim($policiesText) : '';
+        ?>
+        <?php if ($policiesTextSafe !== ''): ?>
+          <pre class="mb-0" style="white-space: pre-wrap; word-break: break-word;"><?= htmlspecialchars($policiesTextSafe) ?></pre>
         <?php else: ?>
           <p class="text-muted mb-0">Chưa có chính sách.</p>
         <?php endif; ?>
@@ -104,8 +110,11 @@
         <h3 class="card-title mb-0">Nhà cung cấp</h3>
       </div>
       <div class="card-body">
-        <?php if (trim($suppliersText) !== ''): ?>
-          <pre class="mb-0" style="white-space: pre-wrap; word-break: break-word;"><?= htmlspecialchars($suppliersText) ?></pre>
+        <?php 
+          $suppliersTextSafe = is_string($suppliersText) ? trim($suppliersText) : '';
+        ?>
+        <?php if ($suppliersTextSafe !== ''): ?>
+          <pre class="mb-0" style="white-space: pre-wrap; word-break: break-word;"><?= htmlspecialchars($suppliersTextSafe) ?></pre>
         <?php else: ?>
           <p class="text-muted mb-0">Chưa có thông tin nhà cung cấp.</p>
         <?php endif; ?>
