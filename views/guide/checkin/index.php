@@ -24,7 +24,7 @@
         <div class="mb-4">
           <h5>Thông tin tour</h5>
           <p class="mb-1"><strong>Tour:</strong> <?= htmlspecialchars($tour['name'] ?? 'Không xác định') ?></p>
-          <p class="mb-1"><strong>Ngày khởi hành:</strong> <?= htmlspecialchars($booking['start_date']) ?></p>
+          <p class="mb-1"><strong>Ngày khởi hành:</strong> <?= htmlspecialchars($booking['start_date'] ?? '') ?></p>
           <?php if ($booking['end_date']): ?>
             <p class="mb-1"><strong>Ngày kết thúc:</strong> <?= htmlspecialchars($booking['end_date']) ?></p>
           <?php endif; ?>
@@ -83,7 +83,7 @@
                     ?>
                     <tr>
                       <td><?= $idx + 1 ?></td>
-                      <td><strong><?= htmlspecialchars($guest->fullname) ?></strong></td>
+                      <td><strong><?= htmlspecialchars($guest->fullname ?? '') ?></strong></td>
                       <td><?= $guest->dob ? htmlspecialchars($guest->dob) : '-' ?></td>
                       <td><?= $guest->gender ? htmlspecialchars($guest->gender) : '-' ?></td>
                       <td class="text-center">

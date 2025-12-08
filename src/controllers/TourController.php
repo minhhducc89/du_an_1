@@ -97,7 +97,13 @@ class TourController
             'description' => '',
             'category_id' => '',
             'price'       => '',
+            'child_price' => '',
+            'duration'    => '',
+            'max_guests'  => '',
             'status'      => 1,
+            'schedule'    => '',
+            'policies'    => '',
+            'suppliers'   => '',
         ];
 
         ob_start();
@@ -126,12 +132,15 @@ class TourController
             exit;
         }
 
-        $name        = trim($_POST['name'] ?? '');
-        $description = trim($_POST['description'] ?? '');
+        // Xử lý tên tour: trim và đảm bảo encoding UTF-8
+        $name        = isset($_POST['name']) ? trim((string)$_POST['name']) : '';
+        $name        = mb_convert_encoding($name, 'UTF-8', 'UTF-8'); // Đảm bảo encoding đúng
+        $description = isset($_POST['description']) ? trim((string)$_POST['description']) : '';
+        $description = mb_convert_encoding($description, 'UTF-8', 'UTF-8');
         $category_id = (int)($_POST['category_id'] ?? 0);
         $adultPrice  = $_POST['price'] !== '' ? (float)$_POST['price'] : null;
         $childPrice  = $_POST['child_price'] !== '' ? (float)$_POST['child_price'] : null;
-        $duration    = trim($_POST['duration'] ?? '');
+        $duration    = isset($_POST['duration']) ? trim((string)$_POST['duration']) : '';
         $maxGuests   = $_POST['max_guests'] !== '' ? (int)$_POST['max_guests'] : null;
         $status      = (int)($_POST['status'] ?? 1);
 
@@ -196,12 +205,12 @@ class TourController
             }
 
             $stored = [];
-            foreach ($_FILES['images']['name'] as $idx => $name) {
+            foreach ($_FILES['images']['name'] as $idx => $fileName) {
                 if ($_FILES['images']['error'][$idx] !== UPLOAD_ERR_OK) {
                     continue;
                 }
                 $tmpName = $_FILES['images']['tmp_name'][$idx];
-                $ext = pathinfo($name, PATHINFO_EXTENSION);
+                $ext = pathinfo($fileName, PATHINFO_EXTENSION);
                 $safeExt = preg_replace('/[^a-zA-Z0-9]/', '', $ext);
                 $newName = uniqid('tour_', true) . ($safeExt ? '.' . $safeExt : '');
                 $dest = $uploadDir . DIRECTORY_SEPARATOR . $newName;
@@ -245,7 +254,27 @@ class TourController
             'duration'    => $duration,
             'max_guests'  => $maxGuests,
         ]);
-        $tour->save();
+        
+        // Kiểm tra xem save có thành công không
+        $saved = $tour->save();
+        if (!$saved) {
+            $errors[] = 'Có lỗi xảy ra khi lưu tour. Vui lòng thử lại.';
+            ob_start();
+            include view_path('admin.tours.form');
+            $content = ob_get_clean();
+
+            view('layouts.AdminLayout', [
+                'title'      => 'Thêm tour mới',
+                'pageTitle'  => 'Thêm tour mới',
+                'content'    => $content,
+                'breadcrumb' => [
+                    ['label' => 'Trang chủ', 'url' => url('home')],
+                    ['label' => 'Quản lý tour', 'url' => url('tours')],
+                    ['label' => 'Thêm mới', 'url' => url('tour-create'), 'active' => true],
+                ],
+            ]);
+            return;
+        }
 
         header('Location: ' . url('tours'));
         exit;
@@ -271,7 +300,11 @@ class TourController
         $scheduleText = '';
         if ($tour->schedule) {
             $decoded = json_decode($tour->schedule, true);
-            $scheduleText = is_array($decoded) && isset($decoded['text']) ? $decoded['text'] : $tour->schedule;
+            if (is_array($decoded) && isset($decoded['text']) && is_string($decoded['text'])) {
+                $scheduleText = $decoded['text'];
+            } elseif (is_string($tour->schedule)) {
+                $scheduleText = $tour->schedule;
+            }
         }
 
         $imagesList = [];
@@ -285,13 +318,21 @@ class TourController
         $policiesText = '';
         if ($tour->policies) {
             $decoded = json_decode($tour->policies, true);
-            $policiesText = is_array($decoded) && isset($decoded['text']) ? $decoded['text'] : $tour->policies;
+            if (is_array($decoded) && isset($decoded['text']) && is_string($decoded['text'])) {
+                $policiesText = $decoded['text'];
+            } elseif (is_string($tour->policies)) {
+                $policiesText = $tour->policies;
+            }
         }
 
         $suppliersText = '';
         if ($tour->suppliers) {
             $decoded = json_decode($tour->suppliers, true);
-            $suppliersText = is_array($decoded) && isset($decoded['text']) ? $decoded['text'] : $tour->suppliers;
+            if (is_array($decoded) && isset($decoded['text']) && is_string($decoded['text'])) {
+                $suppliersText = $decoded['text'];
+            } elseif (is_string($tour->suppliers)) {
+                $suppliersText = $tour->suppliers;
+            }
         }
 
         // Giá chi tiết
@@ -311,18 +352,18 @@ class TourController
 
         $old = [
             'id'          => $tour->id,
-            'name'        => $tour->name,
-            'description' => $tour->description,
-            'category_id' => $tour->category_id,
+            'name'        => $tour->name ?? '',
+            'description' => $tour->description ?? '',
+            'category_id' => $tour->category_id ?? '',
             'price'       => $adultPrice,
             'child_price' => $childPrice,
-            'duration'    => $tour->duration,
-            'max_guests'  => $tour->max_guests,
-            'status'      => $tour->status,
-            'schedule'    => $scheduleText,
-            'images_list' => $imagesList,
-            'policies'    => $policiesText,
-            'suppliers'   => $suppliersText,
+            'duration'    => $tour->duration ?? '',
+            'max_guests'  => $tour->max_guests ?? '',
+            'status'      => $tour->status ?? 1,
+            'schedule'    => $scheduleText ?? '',
+            'images_list' => $imagesList ?? [],
+            'policies'    => $policiesText ?? '',
+            'suppliers'   => $suppliersText ?? '',
         ];
 
         ob_start();
@@ -443,12 +484,12 @@ class TourController
                 @mkdir($uploadDir, 0777, true);
             }
 
-            foreach ($_FILES['images']['name'] as $idx => $name) {
+            foreach ($_FILES['images']['name'] as $idx => $fileName) {
                 if ($_FILES['images']['error'][$idx] !== UPLOAD_ERR_OK) {
                     continue;
                 }
                 $tmpName = $_FILES['images']['tmp_name'][$idx];
-                $ext = pathinfo($name, PATHINFO_EXTENSION);
+                $ext = pathinfo($fileName, PATHINFO_EXTENSION);
                 $safeExt = preg_replace('/[^a-zA-Z0-9]/', '', $ext);
                 $newName = uniqid('tour_', true) . ($safeExt ? '.' . $safeExt : '');
                 $dest = $uploadDir . DIRECTORY_SEPARATOR . $newName;
@@ -572,19 +613,31 @@ class TourController
         $scheduleText = '';
         if ($tour->schedule) {
             $decoded = json_decode($tour->schedule, true);
-            $scheduleText = is_array($decoded) && isset($decoded['text']) ? $decoded['text'] : $tour->schedule;
+            if (is_array($decoded) && isset($decoded['text']) && is_string($decoded['text'])) {
+                $scheduleText = $decoded['text'];
+            } elseif (is_string($tour->schedule)) {
+                $scheduleText = $tour->schedule;
+            }
         }
 
         $policiesText = '';
         if ($tour->policies) {
             $decoded = json_decode($tour->policies, true);
-            $policiesText = is_array($decoded) && isset($decoded['text']) ? $decoded['text'] : $tour->policies;
+            if (is_array($decoded) && isset($decoded['text']) && is_string($decoded['text'])) {
+                $policiesText = $decoded['text'];
+            } elseif (is_string($tour->policies)) {
+                $policiesText = $tour->policies;
+            }
         }
 
         $suppliersText = '';
         if ($tour->suppliers) {
             $decoded = json_decode($tour->suppliers, true);
-            $suppliersText = is_array($decoded) && isset($decoded['text']) ? $decoded['text'] : $tour->suppliers;
+            if (is_array($decoded) && isset($decoded['text']) && is_string($decoded['text'])) {
+                $suppliersText = $decoded['text'];
+            } elseif (is_string($tour->suppliers)) {
+                $suppliersText = $tour->suppliers;
+            }
         }
 
         // Giá chi tiết

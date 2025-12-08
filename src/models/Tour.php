@@ -18,8 +18,9 @@ class Tour
     public function __construct(array $data = [])
     {
         $this->id          = $data['id'] ?? null;
-        $this->name        = $data['name'] ?? '';
-        $this->description = $data['description'] ?? '';
+        // Đảm bảo tên tour được xử lý đúng, loại bỏ khoảng trắng thừa và xử lý NULL
+        $this->name        = isset($data['name']) && $data['name'] !== null ? trim((string)$data['name']) : '';
+        $this->description = isset($data['description']) && $data['description'] !== null ? trim((string)$data['description']) : '';
         $this->category_id = $data['category_id'] ?? null;
         $this->schedule    = $data['schedule'] ?? null;
         $this->images      = $data['images'] ?? null;
@@ -27,7 +28,7 @@ class Tour
         $this->policies    = $data['policies'] ?? null;
         $this->suppliers   = $data['suppliers'] ?? null;
         $this->price       = $data['price'] ?? null;
-        $this->duration    = $data['duration'] ?? null;
+        $this->duration    = isset($data['duration']) && $data['duration'] !== null ? trim((string)$data['duration']) : null;
         $this->max_guests  = $data['max_guests'] ?? null;
         $this->status      = $data['status'] ?? 1;
     }
@@ -64,6 +65,11 @@ class Tour
             return false;
         }
 
+        // Đảm bảo tên tour không rỗng trước khi lưu
+        if (empty(trim($this->name))) {
+            return false;
+        }
+
         if ($this->id === null) {
             $stmt = $pdo->prepare(
                 'INSERT INTO tours (name, description, category_id, schedule, images, prices, policies, suppliers, price, status, duration, max_guests)
@@ -88,6 +94,11 @@ class Tour
                 $this->id = (int)$pdo->lastInsertId();
             }
             return $ok;
+        }
+
+        // Đảm bảo tên tour không rỗng trước khi cập nhật
+        if (empty(trim($this->name))) {
+            return false;
         }
 
         $stmt = $pdo->prepare(

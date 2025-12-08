@@ -35,6 +35,10 @@ function getDB()
             PDO::ATTR_EMULATE_PREPARES => false, // Sử dụng prepared statements thật
         ]);
 
+        // Đảm bảo encoding UTF-8 cho kết nối
+        $pdo->exec("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'");
+        $pdo->exec("SET CHARACTER SET utf8mb4");
+
         return $pdo;
     } catch (PDOException $e) {
         // Ghi log lỗi (trong môi trường production nên log vào file)
