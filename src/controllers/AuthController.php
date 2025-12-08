@@ -15,16 +15,16 @@ class AuthController
             $user = getCurrentUser();
             // Redirect theo role
             if ($user && $user->isAdmin()) {
-                header('Location: ' . BASE_URL . '?act=dashboard');
+                header('Location: ' . url('dashboard'));
             } elseif ($user && $user->isGuide()) {
-                header('Location: ' . BASE_URL . '?act=guide-schedule');
+                header('Location: ' . url('guide-schedule'));
             } else {
-            header('Location: ' . BASE_URL . 'home');
+            header('Location: ' . url('home'));
             }
             exit;   
         }
 
-        $redirect = $_GET['redirect'] ?? BASE_URL . 'home';
+        $redirect = $_GET['redirect'] ?? url('home');
 
         view('auth.login', [
             'title'    => 'Đăng nhập',
@@ -36,13 +36,13 @@ class AuthController
     public function checkLogin()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: ' . BASE_URL . 'login');
+            header('Location: ' . url('login'));
             exit;
         }
 
         $email    = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
-        $redirect = $_POST['redirect'] ?? BASE_URL . 'home';
+        $redirect = $_POST['redirect'] ?? url('home');
 
         $errors = [];
 
@@ -110,11 +110,11 @@ class AuthController
 
         // Redirect theo role
         if ($user->isAdmin()) {
-            header('Location: ' . BASE_URL . '?act=dashboard');
+            header('Location: ' . url('dashboard'));
         } elseif ($user->isGuide()) {
-            header('Location: ' . BASE_URL . '?act=guide-schedule');
+            header('Location: ' . url('guide-schedule'));
         } else {
-            header('Location: ' . BASE_URL . 'home');
+            header('Location: ' . url('home'));
         }
         exit;
     }
@@ -123,7 +123,7 @@ class AuthController
     public function logout()
     {
         logoutUser();
-        header('Location: ' . BASE_URL . 'welcome');
+        header('Location: ' . url('welcome'));
         exit;
     }
 }
