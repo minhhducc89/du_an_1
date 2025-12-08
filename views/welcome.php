@@ -29,7 +29,7 @@ ob_start();
           Để sử dụng đầy đủ chức năng, vui lòng đăng nhập vào hệ thống.
         </p>
         <div class="d-grid">
-          <a href="<?= BASE_URL ?>login" class="btn btn-welcome">
+          <a href="<?= BASE_URL ?>?act=login" class="btn btn-welcome">
             <i class="bi bi-box-arrow-in-right me-2"></i>
             Đăng nhập ngay
           </a>
