@@ -1,6 +1,6 @@
 <?php
 
-// Model Category thao tác với bảng categories
+
 class Category
 {
     public $id;
